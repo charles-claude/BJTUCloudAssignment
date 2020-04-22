@@ -18,7 +18,7 @@ namespace TicketService.Utils
                 BasicGetResult result = channel.BasicGet(queue, true);
                 if (result != null)
                 {
-                        string data = Encoding.UTF8.GetString(result.Body.ToArray());
+                    string data = Encoding.UTF8.GetString(result.Body.ToArray());
                         Console.WriteLine(data);
                         return (data);
                 }

@@ -54,8 +54,8 @@
 
         private void HandleMessage(string content)
         {
-            long userID = long.Parse(content.Substring(0, content.IndexOf("_")));
-            long orderID = long.Parse(content.Substring(content.IndexOf("_")+1));
+            long orderID = long.Parse(content.Substring(0, content.IndexOf("_")));
+            long userID = long.Parse(content.Substring(content.IndexOf("_")+1));
             using (IServiceScope scope = _provider.CreateScope())
             {
                 var context = scope.ServiceProvider.GetRequiredService<PaymentContext>();
@@ -63,6 +63,7 @@
                 paymentItem.OrderID = orderID;
                 paymentItem.UserID = userID;
                 context.payments.Add(paymentItem);
+                context.SaveChangesAsync();
                 Sender.Send("Ticket", "OK");
             }
         }
