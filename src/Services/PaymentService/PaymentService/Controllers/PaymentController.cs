@@ -12,10 +12,10 @@ namespace PaymentService.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+
     public class PaymentsController : ControllerBase
     {
         private readonly PaymentContext _context;
-
         public PaymentsController(PaymentContext context)
         {
             _context = context;
@@ -82,7 +82,7 @@ namespace PaymentService.Controllers
         {
             _context.payments.Add(paymentItem);
             await _context.SaveChangesAsync();
-
+            Sender.Send("Tester", "je suis un test");
             return CreatedAtAction(nameof(GetPaymentItem), new { id = paymentItem.Id }, paymentItem);
         }
 
