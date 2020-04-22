@@ -77,17 +77,12 @@ namespace UserServices.Controllers
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for
         // more details see https://aka.ms/RazorPagesCRUD.
         [HttpPost]
-        public async Task<ActionResult<UserItem>> PostUserItem(string Username, string Password)
+        public async Task<ActionResult<UserItem>> PostUserItem(UserItem userItem)
         {
-            var id = 0;
-            var userItem = new UserItem();
-            userItem.Id = id;
-            userItem.Username = Username;
-            userItem.Password = Password;
             _context.UserItems.Add(userItem);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetUserItem", new { id = id }, userItem);
+            return CreatedAtAction("GetUserItem", new { id = userItem.Id }, userItem);
         }
 
         // DELETE: api/UserItems/5
@@ -107,6 +102,7 @@ namespace UserServices.Controllers
         }
 
         // POST: api/UserItems/Login
+        [HttpPost("login")]
         public async Task<ActionResult<long>> LoginUserItem(string Username, string Password)
         {
             var user = await _context.UserItems.FindAsync(Username);
