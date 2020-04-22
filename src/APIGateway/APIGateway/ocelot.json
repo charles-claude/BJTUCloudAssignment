@@ -50,6 +50,18 @@
       "UpstreamPathTemplate": "/UserItems/{id}",
       "UpstreamHttpMethod": [ "Get", "Delete", "Put" ]
     },
+    {
+      "DownstreamPathTemplate": "/api/UserItems/Login",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 9092
+        }
+      ],
+      "UpstreamPathTemplate": "/UserItems/Login",
+      "UpstreamHttpMethod": [ "Post" ]
+    },
 
 
     { //ticket controller
