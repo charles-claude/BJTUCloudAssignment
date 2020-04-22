@@ -4,6 +4,6 @@ cd ../../Services/PaymentService/PaymentService/
 start cmd /k Call dotnet run
 cd ../../TicketService/TicketService
 start cmd /k Call dotnet run
-cd ../../UserServices/UsersServices
+cd ../../UserServices/UserServices
 start cmd /k Call dotnet run
-cd ../../../
+cd ../../../../
