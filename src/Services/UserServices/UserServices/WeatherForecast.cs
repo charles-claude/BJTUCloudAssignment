@@ -1,6 +1,6 @@
 using System;
 
-namespace UserService
+namespace UserServices
 {
     public class WeatherForecast
     {

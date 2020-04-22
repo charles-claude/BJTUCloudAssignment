@@ -1,38 +1,37 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using UserService;
-using UserService.Models;
+using UserServices.Models;
 
-namespace UserService.Controllers
+namespace UserServices.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class UsersController : ControllerBase
+    public class UserItemsController : ControllerBase
     {
         private readonly UserContext _context;
 
-        public UsersController(UserContext context)
+        public UserItemsController(UserContext context)
         {
             _context = context;
         }
 
-        // GET: api/Users
+        // GET: api/UserItems
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<UserItem>>> Getusers()
+        public async Task<ActionResult<IEnumerable<UserItem>>> GetUserItems()
         {
-            return await _context.users.ToListAsync();
+            return await _context.UserItems.ToListAsync();
         }
 
-        // GET: api/Users/5
+        // GET: api/UserItems/5
         [HttpGet("{id}")]
         public async Task<ActionResult<UserItem>> GetUserItem(long id)
         {
-            var userItem = await _context.users.FindAsync(id);
+            var userItem = await _context.UserItems.FindAsync(id);
 
             if (userItem == null)
             {
@@ -42,7 +41,7 @@ namespace UserService.Controllers
             return userItem;
         }
 
-        // PUT: api/Users/5
+        // PUT: api/UserItems/5
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for
         // more details see https://aka.ms/RazorPagesCRUD.
         [HttpPut("{id}")]
@@ -74,48 +73,53 @@ namespace UserService.Controllers
             return NoContent();
         }
 
-        // POST: api/Users
+        // POST: api/UserItems
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for
         // more details see https://aka.ms/RazorPagesCRUD.
         [HttpPost]
-        public async Task<ActionResult<UserItem>> PostUserItem(UserItem userItem)
+        public async Task<ActionResult<UserItem>> PostUserItem(string Username, string Password)
         {
-            _context.users.Add(userItem);
+            var id = 0;
+            var userItem = new UserItem();
+            userItem.Id = id;
+            userItem.Username = Username;
+            userItem.Password = Password;
+            _context.UserItems.Add(userItem);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetuserItem), new { id = userItem.Id }, userItem);
+            return CreatedAtAction("GetUserItem", new { id = id }, userItem);
         }
 
-        // DELETE: api/Users/5
+        // DELETE: api/UserItems/5
         [HttpDelete("{id}")]
         public async Task<ActionResult<UserItem>> DeleteUserItem(long id)
         {
-            var userItem = await _context.users.FindAsync(id);
+            var userItem = await _context.UserItems.FindAsync(id);
             if (userItem == null)
             {
                 return NotFound();
             }
 
-            _context.users.Remove(userItem);
+            _context.UserItems.Remove(userItem);
             await _context.SaveChangesAsync();
 
             return userItem;
         }
 
-        // POST: api/Users/login
-        public async Task<ActionResult<UserItem>> LoginUserItem(UserItem userItem)
+        // POST: api/UserItems/Login
+        public async Task<ActionResult<long>> LoginUserItem(string Username, string Password)
         {
-            var user = await _context.users.findAsync(id);
+            var user = await _context.UserItems.FindAsync(Username);
             if (user == null)
             {
                 return NotFound();
             }
-            return true;
+            return user.Id;
         }
 
         private bool UserItemExists(long id)
         {
-            return _context.users.Any(e => e.Id == id);
+            return _context.UserItems.Any(e => e.Id == id);
         }
     }
 }
