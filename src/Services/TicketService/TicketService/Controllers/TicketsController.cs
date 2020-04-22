@@ -82,21 +82,23 @@ namespace TicketService.Controllers
         {
             string Data;
             Sender.Send("Client", ticketinput.Token);
+            System.Threading.Thread.Sleep(1000);
             Data = Receiver.Receive("Ticket");
             if (Data == "Unknown")
                 return (Unauthorized());
             Ticket ticket = new Ticket();
             ticket.FilmName = ticketinput.FilmName;
-            ticket.UserId = int.Parse(Data);
+            ticket.UserId = long.Parse(Data);
             ticket.Price = ticketinput.Price;
+            _context.Ticket.Add(ticket);
 
-            Sender.Send("Payment", ticket.Price.ToString() + "_" + ticket.UserId.ToString());
+            Sender.Send("Payment", ticket.Id.ToString() + "_" + ticket.UserId.ToString());
+            System.Threading.Thread.Sleep(1000);
             string PaymentResponse = Receiver.Receive("Ticket");
             if (PaymentResponse != "OK")
                 return (Unauthorized());
             else
             {
-                _context.Ticket.Add(ticket);
                 await _context.SaveChangesAsync();
                 return CreatedAtAction(nameof(GetTicket), new { id = ticket.Id }, ticket);
             }
