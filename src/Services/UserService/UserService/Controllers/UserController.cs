@@ -102,6 +102,17 @@ namespace UserService.Controllers
             return userItem;
         }
 
+        // POST: api/Users/login
+        public async Task<ActionResult<UserItem>> LoginUserItem(UserItem userItem)
+        {
+            var user = await _context.users.findAsync(id);
+            if (user == null)
+            {
+                return NotFound();
+            }
+            return true;
+        }
+
         private bool UserItemExists(long id)
         {
             return _context.users.Any(e => e.Id == id);
