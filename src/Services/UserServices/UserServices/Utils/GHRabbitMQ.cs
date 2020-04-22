@@ -1,7 +1,12 @@
-﻿namespace GHRabbitMQ
+﻿using UserServices.Models;
+
+namespace GHRabbitMQ
 {
+    using System;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
     using RabbitMQ.Client;
@@ -13,9 +18,12 @@
         private IConnection _connection;
         private IModel _channel;
 
-        public ConsumeRabbitMQHostedService(ILoggerFactory loggerFactory)
+        private readonly IServiceProvider _provider;
+
+        public ConsumeRabbitMQHostedService(ILoggerFactory loggerFactory, IServiceProvider serviceProvider)
         {
             this._logger = loggerFactory.CreateLogger<ConsumeRabbitMQHostedService>();
+            _provider = serviceProvider;
             InitRabbitMQ();
         }
 
@@ -30,8 +38,8 @@
             _channel = _connection.CreateModel();
 
             _channel.ExchangeDeclare("exchange", ExchangeType.Topic);
-            _channel.QueueDeclare("Tester", false, false, false, null);
-            //_channel.QueueBind("demoTester", "Tester", "Tester", null);
+            _channel.QueueDeclare("Client", false, false, false, null);
+            //_channel.QueueBind("demoClient", "Client", "Client", null);
             _channel.BasicQos(0, 1, false);
 
             _connection.ConnectionShutdown += RabbitMQ_ConnectionShutdown;
@@ -40,7 +48,11 @@
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
             stoppingToken.ThrowIfCancellationRequested();
-
+            using (IServiceScope scope = _provider.CreateScope())
+            {
+                var _context = scope.ServiceProvider.GetRequiredService<UserContext>();
+                var userList = _context.UserItems.ToList();
+            }
             var consumer = new EventingBasicConsumer(_channel);
             consumer.Received += (ch, ea) =>
             {
@@ -57,14 +69,30 @@
             consumer.Unregistered += OnConsumerUnregistered;
             consumer.ConsumerCancelled += OnConsumerConsumerCancelled;
 
-            _channel.BasicConsume("Tester", false, consumer);
+            _channel.BasicConsume("Client", false, consumer);
             return Task.CompletedTask;
         }
 
         private void HandleMessage(string content)
         {
-            // we just print this message   
-            _logger.LogInformation($"consumer received {content}");
+            // we just print this message
+            using (IServiceScope scope = _provider.CreateScope())
+            {
+                var _context = scope.ServiceProvider.GetRequiredService<UserContext>();
+                _logger.LogInformation($"consumer received {content}");
+                var TokenId = content;
+                var userList = _context.UserItems.Where(s => s.TokenId == TokenId).ToList();
+                if (userList.Count() == 0)
+                {
+                    Sender.Send("Ticket", "Unknown");
+                }
+                else
+                {
+                    var user = userList[0];
+                    Console.WriteLine(user.Id.ToString());
+                    Sender.Send("Ticket", user.Id.ToString());
+                }
+            }
         }
 
         private void RabbitMQ_ConnectionShutdown(object sender, ShutdownEventArgs e)

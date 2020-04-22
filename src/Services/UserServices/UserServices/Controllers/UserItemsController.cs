@@ -81,7 +81,7 @@ namespace UserServices.Controllers
         {
             _context.UserItems.Add(userItem);
             await _context.SaveChangesAsync();
-
+            userItem.TokenId = "azer" + userItem.Id.ToString();
             return CreatedAtAction("GetUserItem", new { id = userItem.Id }, userItem);
         }
 
