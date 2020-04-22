@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TicketService.Models;
+using TicketService.Utils;
 
 namespace TicketService.Controllers
 {
@@ -77,12 +78,29 @@ namespace TicketService.Controllers
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for
         // more details see https://aka.ms/RazorPagesCRUD.
         [HttpPost]
-        public async Task<ActionResult<Ticket>> PostTicket(Ticket ticket)
+        public async Task<ActionResult<Ticket>> PostTicket(TicketInput ticketinput)
         {
-            _context.Ticket.Add(ticket);
-            await _context.SaveChangesAsync();
+            string Data;
+            Sender.Send("Client", ticketinput.Token);
+            Data = Receiver.Receive("Ticket");
+            if (Data == "Unknown")
+                return (Unauthorized());
+            Ticket ticket = new Ticket();
+            ticket.FilmName = ticketinput.FilmName;
+            ticket.UserId = int.Parse(Data);
+            ticket.Price = ticketinput.Price;
 
-            return CreatedAtAction(nameof(GetTicket), new { id = ticket.Id }, ticket);
+            Sender.Send("Payment", ticket.Price.ToString() + "_" + ticket.UserId.ToString());
+            string PaymentResponse = Receiver.Receive("Ticket");
+            if (PaymentResponse != "OK")
+                return (Unauthorized());
+            else
+            {
+                _context.Ticket.Add(ticket);
+                await _context.SaveChangesAsync();
+                return CreatedAtAction(nameof(GetTicket), new { id = ticket.Id }, ticket);
+            }
+            
         }
 
         // DELETE: api/Tickets/5

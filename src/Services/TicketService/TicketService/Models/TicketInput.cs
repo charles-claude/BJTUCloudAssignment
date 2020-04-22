@@ -5,11 +5,10 @@ using System.Threading.Tasks;
 
 namespace TicketService.Models
 {
-    public class Ticket
+    public class TicketInput
     {
-        public long UserId { get; set; }
-        public long Id { get; set; }
-        
+        public string Token { get; set; }
+
         public string FilmName { get; set; }
 
         public UInt16 Price { get; set; }
