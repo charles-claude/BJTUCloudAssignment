@@ -28,9 +28,9 @@ namespace PaymentService
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddHostedService<ConsumeRabbitMQHostedService>();
             services.AddDbContext<PaymentContext>(opt => opt.UseInMemoryDatabase("Payments"));
             services.AddControllers();
+            services.AddHostedService<ConsumeRabbitMQHostedService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

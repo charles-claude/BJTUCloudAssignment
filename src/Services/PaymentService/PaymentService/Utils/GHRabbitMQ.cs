@@ -1,9 +1,14 @@
 ﻿namespace GHRabbitMQ
 {
+    using System;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
+    using PaymentService;
+    using PaymentService.Models;
     using RabbitMQ.Client;
     using RabbitMQ.Client.Events;
 
@@ -12,29 +17,23 @@
         private readonly ILogger _logger;
         private IConnection _connection;
         private IModel _channel;
+        private readonly IServiceProvider _provider;
 
-        public ConsumeRabbitMQHostedService(ILoggerFactory loggerFactory)
+        public ConsumeRabbitMQHostedService(ILoggerFactory loggerFactory, IServiceProvider serviceProvider)
         {
             this._logger = loggerFactory.CreateLogger<ConsumeRabbitMQHostedService>();
             InitRabbitMQ();
+            _provider = serviceProvider;
         }
 
         private void InitRabbitMQ()
         {
             var factory = new ConnectionFactory { HostName = "localhost" };
-
-            // create connection
             _connection = factory.CreateConnection();
-
-            // create channel
             _channel = _connection.CreateModel();
-
             _channel.ExchangeDeclare("exchange", ExchangeType.Topic);
-            _channel.QueueDeclare("Tester", false, false, false, null);
-            //_channel.QueueBind("demoTester", "Tester", "Tester", null);
+            _channel.QueueDeclare("Payment", false, false, false, null);
             _channel.BasicQos(0, 1, false);
-
-            _connection.ConnectionShutdown += RabbitMQ_ConnectionShutdown;
         }
 
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
@@ -44,52 +43,28 @@
             var consumer = new EventingBasicConsumer(_channel);
             consumer.Received += (ch, ea) =>
             {
-                // received message
                 var content = System.Text.Encoding.UTF8.GetString(ea.Body.ToArray());
-
-                // handle the received message
                 HandleMessage(content);
                 _channel.BasicAck(ea.DeliveryTag, false);
             };
 
-            consumer.Shutdown += OnConsumerShutdown;
-            consumer.Registered += OnConsumerRegistered;
-            consumer.Unregistered += OnConsumerUnregistered;
-            consumer.ConsumerCancelled += OnConsumerConsumerCancelled;
-
-            _channel.BasicConsume("Tester", false, consumer);
+            _channel.BasicConsume("Payment", false, consumer);
             return Task.CompletedTask;
         }
 
         private void HandleMessage(string content)
         {
-            // we just print this message   
-            _logger.LogInformation($"consumer received {content}");
-        }
-
-        private void RabbitMQ_ConnectionShutdown(object sender, ShutdownEventArgs e)
-        {
-            _logger.LogInformation($"connection shut down {e.ReplyText}");
-        }
-
-        private void OnConsumerConsumerCancelled(object sender, ConsumerEventArgs e)
-        {
-            _logger.LogInformation($"consumer cancelled");
-        }
-
-        private void OnConsumerUnregistered(object sender, ConsumerEventArgs e)
-        {
-            _logger.LogInformation($"consumer unregistered");
-        }
-
-        private void OnConsumerRegistered(object sender, ConsumerEventArgs e)
-        {
-            _logger.LogInformation($"consumer registered");
-        }
-
-        private void OnConsumerShutdown(object sender, ShutdownEventArgs e)
-        {
-            _logger.LogInformation($"consumer shutdown {e.ReplyText}");
+            long userID = long.Parse(content.Substring(0, content.IndexOf("_")));
+            long orderID = long.Parse(content.Substring(content.IndexOf("_")+1));
+            using (IServiceScope scope = _provider.CreateScope())
+            {
+                var context = scope.ServiceProvider.GetRequiredService<PaymentContext>();
+                PaymentItem paymentItem = new PaymentItem();
+                paymentItem.OrderID = orderID;
+                paymentItem.UserID = userID;
+                context.payments.Add(paymentItem);
+                Sender.Send("Ticket", "OK");
+            }
         }
 
         public override void Dispose()

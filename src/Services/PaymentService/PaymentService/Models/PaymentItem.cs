@@ -8,8 +8,11 @@ namespace PaymentService.Models
     public class PaymentItem
     {
         public long Id { get; set; }
-        public string Title { get; set; }
         public long UserID { get; set; }
         public long OrderID { get; set; }
+
+        public PaymentItem()
+        { }
+
     }
 }
