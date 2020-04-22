@@ -10,5 +10,11 @@
     <PackageReference Include="Ocelot" Version="15.0.6" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Controllers\" />
+  </ItemGroup>
+
+  <ProjectExtensions><VisualStudio><UserProperties ocelot_1json__JsonSchema="" /></VisualStudio></ProjectExtensions>
+
 
 </Project>
