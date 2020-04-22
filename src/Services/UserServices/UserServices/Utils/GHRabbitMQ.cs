@@ -80,8 +80,8 @@ namespace GHRabbitMQ
             {
                 var _context = scope.ServiceProvider.GetRequiredService<UserContext>();
                 _logger.LogInformation($"consumer received {content}");
-                var TokenId = content;
-                var userList = _context.UserItems.Where(s => s.TokenId == TokenId).ToList();
+                var tokenId = content;
+                var userList = _context.UserItems.Where(s => s.TokenId == tokenId).ToList();
                 if (userList.Count() == 0)
                 {
                     Sender.Send("Ticket", "Unknown");
@@ -89,7 +89,7 @@ namespace GHRabbitMQ
                 else
                 {
                     var user = userList[0];
-                    Console.WriteLine(user.Id.ToString());
+                    var test = user.Id.ToString();
                     Sender.Send("Ticket", user.Id.ToString());
                 }
             }

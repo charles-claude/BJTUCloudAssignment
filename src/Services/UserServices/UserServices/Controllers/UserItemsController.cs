@@ -82,6 +82,7 @@ namespace UserServices.Controllers
             _context.UserItems.Add(userItem);
             await _context.SaveChangesAsync();
             userItem.TokenId = "azer" + userItem.Id.ToString();
+            await _context.SaveChangesAsync();
             return CreatedAtAction("GetUserItem", new { id = userItem.Id }, userItem);
         }
 
@@ -101,11 +102,11 @@ namespace UserServices.Controllers
             return userItem;
         }
 
-        // POST: api/UserItems/Login
-        [HttpPost("login")]
-        public async Task<ActionResult<long>> LoginUserItem(string Username, string Password)
+        // POST: api/UserItems/login
+        [HttpPost("Login")]
+        public async Task<ActionResult<long>> LoginUserItem(UserItem userItem)
         {
-            var user = await _context.UserItems.FindAsync(Username);
+            var user = await _context.UserItems.FindAsync(userItem.Username);
             if (user == null)
             {
                 return NotFound();
