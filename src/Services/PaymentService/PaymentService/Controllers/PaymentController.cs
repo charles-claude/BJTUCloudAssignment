@@ -82,7 +82,6 @@ namespace PaymentService.Controllers
         {
             _context.payments.Add(paymentItem);
             await _context.SaveChangesAsync();
-            Sender.Send("Payment", "12_13");
             return CreatedAtAction(nameof(GetPaymentItem), new { id = paymentItem.Id }, paymentItem);
         }
 

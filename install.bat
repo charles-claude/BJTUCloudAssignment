@@ -1,0 +1,9 @@
+cd src/APIGateway
+dotnet restore
+cd ../Services/PaymentService
+dotnet restore
+cd ../TicketService 
+dotnet restore
+cd ../UserServices
+dotnet restore
+cd ../../
